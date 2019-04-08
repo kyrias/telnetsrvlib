@@ -1026,7 +1026,7 @@ class TelnetHandlerBase(SocketServer.BaseRequestHandler):
             self.writeline(self.TELNET_ISSUE)
         if not self.authentication_ok():
             return
-        if self.DOECHO:
+        if self.DOECHO and self.WELCOME:
             self.writeline(self.WELCOME)
 
         self.session_start()
