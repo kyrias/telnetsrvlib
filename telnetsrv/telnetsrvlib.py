@@ -1046,7 +1046,16 @@ class TelnetHandlerBase(SocketServer.BaseRequestHandler):
                         if self.handleException(t, p, tb):
                             break
                 else:
-                    self.writeerror("Unknown command '%s'" % cmd)
+                    if self.COMMANDS.has_key('DEFAULT'):
+                        try:
+                            self.COMMANDS['DEFAULT'](params)
+                        except:
+                            log.exception('Error calling %s.' % 'DEFAULT')
+                            (t, p, tb) = sys.exc_info()
+                            if self.handleException(t, p, tb):
+                                break
+                    else:
+                        self.writeerror("Unknown command '%s'" % cmd)
         log.debug("Exiting handler")
 
 
