@@ -31,6 +31,7 @@ import curses.ascii
 import curses.has_key
 import curses
 import logging
+import string
 #if not hasattr(socket, 'SHUT_RDWR'):
 #    socket.SHUT_RDWR = 2
 
@@ -437,6 +438,8 @@ class TelnetHandlerBase(SocketServer.BaseRequestHandler):
     PROMPT_USER = "Username: "
     # What prompt to use when requesting a telnet password
     PROMPT_PASS = "Password: "
+    # Whether to echo password as dots or not at all
+    ECHO_PASS_AS_DOTS = False
 
 # --------------------------- Environment Setup ----------------------------
 
@@ -616,10 +619,16 @@ class TelnetHandlerBase(SocketServer.BaseRequestHandler):
         """Determine if we should echo or not"""
         return echo == True or (echo == None and self.DOECHO == True)
 
+    def _readline_do_echo_dots(self, echo):
+        return echo == 'dots' and self.DOECHO == True
+
     def _readline_echo(self, char, echo):
         """Echo a recieved character, move cursor etc..."""
+        printable = string.printable.replace('\r', '').replace('\n', '')
         if self._readline_do_echo(echo):
             self.write(char)
+        elif self._readline_do_echo_dots(echo) and char in printable:
+            self.write('.')
     
     def _readline_insert(self, char, echo, insptr, line):
         """Deal properly with inserted chars in a line."""
@@ -1002,7 +1011,8 @@ class TelnetHandlerBase(SocketServer.BaseRequestHandler):
             if self.authNeedUser:
                 username = self.readline(prompt=self.PROMPT_USER, use_history=False)
             if self.authNeedPass:
-                password = self.readline(echo=False, prompt=self.PROMPT_PASS, use_history=False)
+                echo = 'dots' if self.ECHO_PASS_AS_DOTS else False
+                password = self.readline(echo=echo, prompt=self.PROMPT_PASS, use_history=False)
                 if self.DOECHO:
                     self.write("\n")
             try:
