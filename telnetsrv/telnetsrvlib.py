@@ -675,11 +675,8 @@ class TelnetHandlerBase(SocketServer.BaseRequestHandler):
         ansi = 0
         histptr = len(self.history)
             
-        if self.DOECHO:
-            self.write(prompt)
-            self._current_prompt = prompt
-        else:
-            self._current_prompt = ''
+        self.write(prompt)
+        self._current_prompt = prompt
         
         self._current_line = ''
         
